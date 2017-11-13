@@ -37,6 +37,8 @@ Vsphere 5.5
 
 Récuperation du fichier /opt/kubernetes-anywhere/phase1/vsphere/kubernetes/kubeconfig.json pour la configuration de kubectl
 
+![](./k8s.png)
+
 
 **Utilisation de Helm**
 
