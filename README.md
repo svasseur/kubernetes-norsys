@@ -64,7 +64,7 @@ Controller Ingress, permet d’exposer les services à l’exterieur.
 
 ##### Installation de kube-lego
 
-kube-lego automatically requests certificates for Kubernetes Ingress resources from Let's Encrypt.
+kube-lego génération automatique du certificat https pour les resssources ingress via Let's Encrypt.
 
 
 `helm install stable/kube-lego --set config.LEGO_EMAIL=$EMAIL,config.LEGO_URL=https://acme-v01.api.letsencrypt.org/directory
