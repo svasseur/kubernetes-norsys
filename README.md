@@ -39,6 +39,19 @@ Récuperation du fichier /opt/kubernetes-anywhere/phase1/vsphere/kubernetes/kube
 
 ![](./k8s.png)
 
+Récuperation de l’adresse ip et le port du dashboard sans passer par le kubectl proxy
+
+`kubectl get all -n kube-system | grep dashboard`
+
+`po/kubernetes-dashboard-1019458639-m5vm8       1/1       Running   0          20h`
+`svc/kubernetes-dashboard   NodePort    10.0.131.235   <none>        80:30401/TCP    20h`
+
+`kubectl describe pods kubernetes-dashboard-1019458639-m5vm8 -n kube-system | grep Node`
+`Node:           kubernetes-node4/172.20.20.214`
+
+le dashboard est accessible sur 172.20.20.214:30401
+
+
 
 **Utilisation de Helm**
 
