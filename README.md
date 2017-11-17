@@ -6,16 +6,46 @@ Installation de d’un cluster Kubernetes sous VSphere 5.5
 
 Choix du type d’installation : 
 
-1. Coreos 
-2. Tectonic 
-3. Kubernetes Anywhere  
-
+## 1. Coreos 
 Coreos : la méthode n’est plus maintenu par coreos au profit de la méthode tectonic. 
 Idéal pour la mise en place de kubernetes sur coreos.
 
 Uitlisation des scripts de déploiements de coreos disponible ici : [www.virtuallyghetto.com](www.virtuallyghetto.com)
 
 Exemples de script dans le repertoire [coreos](https://github.com/svasseur/kubernetes-norsys/tree/master/coreos)
+
+
+## 2. Tectonic 
+Utilisation d’une méthode propriétaire pour déployer un cluster kubernetes / coreos.
+
+Necessite une license gratuite pour le déploiement jusqu’a 10 instances. 
+
+Déploiement via terraform.
+
+Il faut un serveur ipxe pour récuperer les images coreos, si non disponible il est possible d’utiliser le protocole pxe mais dans ce cas il faut contourner le problème avec la construciton d’un fichier undionly.kpxe comme décrit ici : [http://ipxe.org/download](http://ipxe.org/download)
+
+créer un fichier demo.ipxe
+
+```
+#!ipxe
+dhcp
+chain http://machinededeploiement:8080/boot.ipxe
+```
+
+construire l’image ipxe 
+`make bin/undionly.kpxe EMBED=demo.ipxe`
+
+Pour eviter les problèmes, mettre en place le pxe uniquement pour les adresses mac des machines kubernetes. ( histoire d’eviter l’installation de coreos sur toutes les serveurs de l’entreprise qui pourraient rebooter ) 
+
+Avantage de tectonic : le dashboard de tectonic est sympa. On se se pose pas la question de la mise en place du controler ingress ( les accés externes sont gérés automatiquement ).
+
+Inconvénient : limitation de la licence gratuite.
+Pas simple de mettre en place un provider cloud vpshere. 
+
+
+## 3. Kubernetes Anywhere  
+
+
 
 
 
@@ -30,24 +60,10 @@ Exemples de script dans le repertoire [coreos](https://github.com/svasseur/kuber
 `docker run -it -v /tmp:/tmp --rm --env=« PS1=[container]:\w> «  --net=host cnastorage/kubernetes-anywhere:latest /bin/bash
 `
 
+`make config`
 
+`make deploy`
 
-.phase1.vSphere.url=""
-.phase1.vSphere.port=
-.phase1.vSphere.username=""
-.phase1.vSphere.password=""
-.phase1.vSphere.insecure=y
-.phase1.vSphere.datacenter="Norsys-DC"
-.phase1.vSphere.datastore="Datastore-12"
-.phase1.vSphere.placement="cluster"
-.phase1.vSphere.cluster="Norsys-CL"
-.phase1.vSphere.useresourcepool="no"
-.phase1.vSphere.vmfolderpath="kubernetes"
-.phase1.vSphere.vcpu=4
-.phase1.vSphere.memory=8096
-.phase1.vSphere.network="Prod"
-.phase1.vSphere.template="Templates/KubernetesAnywhereTemplatePhotonOS"
-.phase1.vSphere.flannel_net="172.1.0.0/16"
 
 
 Récuperation du fichier /opt/kubernetes-anywhere/phase1/vsphere/kubernetes/kubeconfig.json pour la configuration de kubectl
@@ -96,7 +112,11 @@ kube-lego génération automatique du certificat https pour les resssources ingr
 
 
 `helm install stable/kube-lego --set config.LEGO_EMAIL=$EMAIL,config.LEGO_URL=https://acme-v01.api.letsencrypt.org/directory
-`
+
+
+##### Installation d’un provisionner NFS 
+
+
 
 
 
