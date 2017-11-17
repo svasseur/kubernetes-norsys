@@ -1,7 +1,22 @@
 # kubernetes-norsys
 
 
-Vsphere 5.5
+Installation de d’un cluster Kubernetes sous VSphere 5.5
+
+
+Choix du type d’installation : 
+
+1. Coreos 
+2. Tectonic 
+3. Kubernetes Anywhere  
+
+Coreos : la méthode n’est plus maintenu par coreos au profit de la méthode tectonic. 
+Idéal pour la mise en place de kubernetes sur coreos.
+
+Uitlisation des scripts de déploiements de coreos disponible ici : [www.virtuallyghetto.com](www.virtuallyghetto.com)
+
+Exemples de script dans le repertoire [coreos]()
+
 
 
 
@@ -73,7 +88,7 @@ Faire un `helm repo update` si lors de l’installation d’un composant retourn
 ##### Installation de nginx-ingress
 Controller Ingress, permet d’exposer les services à l’exterieur.
 
-`helm install stable/nginx-ingress`
+`helm install stable/nginx-ingress --set controller.hostNetwork=true`
 
 ##### Installation de kube-lego
 

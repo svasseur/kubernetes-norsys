@@ -1,0 +1,180 @@
+# These settings can be overridden on the command line using environment variables or command line arguments, i.e.:
+# $ CORE_OS_HOSTNAME=coreos1 CORE_OS_USERNAME=somedude CORE_OS_IP_ADDRESS=192.168.1.99 deploy_coreos_on_esxi2.sh --channel stable worker.sh
+
+# or
+# $ deploy_core_os_on_esxi2.sh --core_os_hostname=worker1 worker.sh
+#
+# arguments are the variable names in lower case
+# $ export CORE_OS_HOSTNAME=worker1
+# $ deploy_core_os_on_esxi2.sh worker.sh
+# command line arguments take precedence over environment variables
+
+# Name of the VM Network to connect CoreOS VM
+export VM_NETWORK=${VM_NETWORK:-"Prod"}
+
+# Hostname of CoreOS Instance, default is random 37 char name
+NEW_UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+export CORE_OS_HOSTNAME=${CORE_OS_HOSTNAME:-core-${NEW_UUID}}
+
+# Name of the CoreOS VM
+export VM_NAME=coreos-$CORE_OS_HOSTNAME
+
+# static IP Address of Instance running ETCD
+export ETCD_IP_ADDRESS=${ETCD_IP_ADDRESS:-192.168.1.58}
+
+# Username to enable on CoreOS Instance
+export CORE_OS_USERNAME=${CORE_OS_USERNAME:-gclaybur}
+
+# Password hash of CoreOS Instance
+export CORE_OS_PASSWORD_HASH=${CORE_OS_PASSWORD_HASH:-'$1$jmB5gDWK$PuhW2bvjEwIlW5Wx.2G4A.'} #opensesame1
+
+TMP_CLOUD_CONFIG_DIR=/tmp/new-drive
+
+echo "Build Cloud Config Settings ..."
+mkdir -p ${TMP_CLOUD_CONFIG_DIR}/openstack/latest
+
+cat > ${TMP_CLOUD_CONFIG_DIR}/openstack/latest/user_data << __CLOUD_CONFIG__
+#cloud-config
+
+hostname: ${CORE_OS_HOSTNAME}
+
+ssh_authorized_keys:
+  ssh key here
+write_files:
+  - path: /etc/environment
+    content: |
+        COREOS_HOST=${IP_ADDRESS}
+  - path: /etc/conf.d/nfs
+    permissions: '0644'
+    content: |
+        OPTS_RPC_MOUNTD=""
+  - path: /etc/systemd/network/static.network
+    permissions: '0644'
+    content: |
+      [Match]
+      Name=ens*
+      [Network]
+      DHCP=none
+      Address=${IP_ADDRESS}/20
+      Gateway=${GATEWAY}
+      DNS=${DNS}
+  - path: /etc/ssh/sshd_config
+    permissions: 0600
+    owner: root:root
+    content: |
+      # Use most defaults for sshd configuration.
+      UsePrivilegeSeparation sandbox
+      Subsystem sftp internal-sftp
+
+      PermitRootLogin no
+      AllowUsers core
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+  - path: /home/core/.dockercfg
+    owner: core:core
+    permissions: 0644
+    content: |
+      {
+        "hub-docker.norsys.fr": {
+                "auth": "xxxxxxxx",
+                "email": ""
+        }
+      }
+
+  - path: /home/core/certs/norsys.cer
+    permissions: 0600
+    owner: core:core
+    content: |
+      -----BEGIN CERTIFICATE-----
+    CERTIFICATE here
+      -----END CERTIFICATE-----
+  - path: /home/core/certs/norsys.key
+    permissions: 0600
+    owner: core:core
+    content: |
+      Bag Attributes
+          Microsoft Local Key set: <No Values>
+          localKeyID: 01 00 00 00
+          friendlyName: xx
+          Microsoft CSP Name: Microsoft RSA SChannel Cryptographic Provider
+      Key Attributes
+          X509v3 Key Usage: 10
+      -----BEGIN PRIVATE KEY-----
+    CERTIFICATE
+      -----END PRIVATE KEY-----
+
+coreos:
+    update:
+      reboot-strategy: off
+
+    units:
+    - name: rpc-statd.service
+      command: start
+      enable: true
+    - name: mnt-data.mount
+      command: start
+      content: |
+        [Mount]
+        What=${IP_GLUSTERFS}:/gv0
+        Where=/mnt/data/
+        Type=nfs
+        Options=rw,hard,async,intr,nolock,rsize=49152,wsize=49152
+    - name: mnt-backup.mount
+      command: start
+      content: |
+        [Mount]
+        What=172.20.16.250:/infrabackup
+        Where=/mnt/backup/
+        Type=nfs
+        Options=rw
+    - name: etcd.service
+      mask: true
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        Service=docker.service
+        BindIPv6Only=both
+
+        [Install]
+        WantedBy=sockets.target
+    - name: 00-ens.network
+      runtime: true
+      content: |
+        [Match]
+        Name=ens*
+
+        [Network]
+        DHCP=none
+        Address=${IP_ADDRESS}/20
+        Gateway=${GATEWAY}
+        DNS=${DNS}
+    - name: settimezone.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set the timezone
+
+        [Service]
+        ExecStart=/usr/bin/timedatectl set-timezone Europe/Paris
+        RemainAfterExit=yes
+        Type=oneshot
+
+write_files:
+  - path: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+    content: |
+        #allow docker to use private registry over http using the dns registered name, "registry"
+        [Service]
+        Environment=DOCKER_OPTS='--insecure-registry="registry:5000"'
+  - path: /etc/profile.d/etcdctl.sh
+    permissions: 0644
+    owner: core
+    content: |
+      # configure etcdctl to work with our etcd servers set above
+      export ETCDCTL_PEERS="http://${ETCD_IP_ADDRESS}:4001"
+__CLOUD_CONFIG__

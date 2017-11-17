@@ -1,0 +1,105 @@
+# Name of the VM Network to connect CoreOS VM
+export VM_NETWORK=${VM_NETWORK:-"VM Network"}
+
+# Hostname of CoreOS Instance, default is random 37 char name
+NEW_UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+export CORE_OS_HOSTNAME=${CORE_OS_HOSTNAME:-core-${NEW_UUID}}
+
+# Name of the CoreOS VM
+export VM_NAME=${VM_NAME:-coreos-${CORE_OS_HOSTNAME}}
+
+# static IP Address of Instance running ETCD
+export ETCD_IP_ADDRESS=${ETCD_IP_ADDRESS:-192.168.1.58}
+
+# Username to enable on CoreOS Instance
+export CORE_OS_USERNAME=${CORE_OS_USERNAME:-gclaybur}
+
+# Password hash of CoreOS Instance
+export CORE_OS_PASSWORD_HASH=${CORE_OS_PASSWORD_HASH:-'$1$jmB5gDWK$PuhW2bvjEwIlW5Wx.2G4A.'} #opensesame1
+
+TMP_CLOUD_CONFIG_DIR=/tmp/new-drive
+
+echo "Build Cloud Config Settings ..."
+mkdir -p ${TMP_CLOUD_CONFIG_DIR}/openstack/latest
+
+cat > ${TMP_CLOUD_CONFIG_DIR}/openstack/latest/user_data << __CLOUD_CONFIG__
+#cloud-config
+
+hostname: ${CORE_OS_HOSTNAME}
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5gmoBImrng4Rr4LZF1MgTKk0tQSs5/yGo62SprpQl/rT9B3s1bBX7x4mFKrxh53WRlDTkb14b2XV4n0lFETkwX438eFQ2sP2OPlZ1QP7L4DrsCABk5cicSDV+fz3d08FG6YEz3ueAaKWi6lmXifjqoktW51M4Wv9/KT67DpLbxNeotdEvV30nktULIhAoZMoSgzoAmlfphYm8GzD2AEW5HYzy5w9GXI+O72l59shhAaUqLFeexqnhz4a8COqXHmXSPu7oNy2rI6ZRQTrLx4ikoSnCsYOeHLth0JO0k7Lc9la0kIgXscN+8ZBPefWVlOyOd2sTva0HExsy4LubXN02lmTPglb68FpPFaXNAMSCl5AnfkVBUwiN/C4ReAThQxkscNP6hBg9yLD1z6TqcTHHBNqrW3ktHUbsmC3iWfxuvkYkLJ7/typ2o+tjeKgdMNd/9IM6QVyA1dpBbwCVG31ieEifOhAnCd7WOcrbm1MMrp3pZu9V8H0YfbZ0/l2LQQu4NhSzrZZEek9ooHiutJWf8+hv/8E+jBrRpVKvulK7wgBnp9ty9AFbUDxzTR2JXUhVyVo0caf/7G/l2QhmXztcCmIaDgAWR/qrBisQBYggcI0OzLJbujuHbGONjeY75ORLkN3dliLeRwLOL5146EifCc9rYyruXLab0/dee+yEKw== svasseur@norsys.fr
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCiR8Fom/Xn87k23TG9vy6vE45AuGM1PjMRygO9L1uWTGHZK2BQKT8FrSL21bRB4NObwRc8u3fUVZABUQvJfy+6ewqHlscYAgfvEHlSehA/WcFnin1Qw6kqaCpE7bQhgbJrlsIpTquJT5ctDbGOD69Qly00S10fzNgi9bREO8wZpO4Sr5zR7GVIVoT3XjhTROLndcPZcBArAIpeKUPIzZGUvMLBOgpdt2UaJjvnS4ZI2IbWFFY/1tHmXGtiZ/1eacXd4TpbdYNwK0jXdOQQpjnsvgMGo8+5577V+PKrStWI16iBsyKJ7cc6cumv5LrMKLT0DnzyaBU/Ec2/8CPrCxxT cedvan
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDF2uWj/3jxDUKDwwW6/CxDn8AZYk4lXZi/dNrD/+tzg5BKX/AqbMF7k4kEw81MhPH5y0vUZCzMlZIqRCf1Qb7DCZlhL56eACpHJOsIdyvQec+OWtFYTKBNlQsJ44n1nemUOqwEeS5IsYWB5xFsNaXACqW9zCajt8tqMnkyPIg7Vzxe7B7BuhIWj5BTddd+DysAcndBaqDvXkiuMJE/XMWlGLucJY7bQBhekPykvaUeYSASNCZg+reREbLFy9yerkWo2aBlGNVeKej715CM2nLfGU7sVmKxvZFjzI0crLjHlaW/i4kuTD+9OKZI3CRQCrb8hJOQ+5/yfBtQZkxGMJ6D emarszalek@norsys.fr
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDvaUnYbhQs+j1iyj0zdy2SN4G8qw0Xy955kW5yD7GOF8tLjW8q4decud5c5KBJ9T5rZuB4e8vpcPDAjt4yhZsKzYt+f7e+oLjQM5kChKWrr5Jrt09OOEuGXiL/qKEcIRUXAbs0Od4FygwAuxyVUvxcXmySfeIMwZwfvyfIm0TZ3Z927hhnT65saRjCOtWkH/9JinkrjKF4aZTV8aEiX1n7h1FaHSr7W2xVXPwavBwF2BgML0611CVLFF4BWfyR5YL6X21qgJ4DerxmJNRu039zAeGjF84CMZk6A3eLMoX2rteNLOBWc0R7DjaJuaBJ186VflpeSVmHnQq9nyw5Fvxv ralapide@localhost.localdomain
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJB+YFNoTbDYWvwJO4epaT1Y8wtV5bmOhq3SnAG8+JkyfIL5mv2QpbYREVC80Gv8wWzZxTxsbuDxUTtMBUs4krbx0YL51chMmufE51DosAsbFvYAw9TumtyUE1O4Y++mEpH0ePd1R0cFA2iANqKzd8kQC3Oj9k9XwS7nqcxQmdns5mYCfIT3wGwbq4NskqlTigUwKCdGxam4IboQOmN3VKk5Sg1jOPWjf8HFPfkn3fIXnlIIUxuKdCYse3z/Jqqs8qRH99QMN0fptuCMzRs2FL3xwqlrCs9jB7Ad/BuOMfIu8A+oLXUWcDQDPn31DdVo78EjV/Q0rYEWnp4sqwcT8F support-infra@norsys.fr
+write_files:
+  - path: /etc/systemd/network/static.network
+    permissions: '0644'
+    content: |
+      [Match]
+      Name=ens*
+      [Network]
+      DHCP=none
+      Address=${ETCD_IP_ADDRESS}/20
+      Gateway=${GATEWAY}
+      DNS=${DNS}
+  - path: /etc/ssh/sshd_config
+    permissions: 0600
+    owner: root:root
+    content: |
+      # Use most defaults for sshd configuration.
+      UsePrivilegeSeparation sandbox
+      Subsystem sftp internal-sftp
+
+      PermitRootLogin no
+      AllowUsers core
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+  - path: /home/core/.dockercfg
+    owner: core:core
+    permissions: 0644
+    content: |
+      {
+        "hub-docker.norsys.fr": {
+                "auth": "dXNlci1pbmZyYTo5eU1FZEprSFo4bEROQndVN3dycg==",
+                "email": ""
+        }
+      }
+
+
+coreos:
+  update:
+    reboot-strategy: off
+  etcd2:
+    name: ${ETCD_HOSTNAME}
+    initial-cluster-token: master
+    initial-advertise-peer-urls: http://${ETCD_IP_ADDRESS}:2380
+    listen-peer-urls: http://0.0.0.0:2380,http://0.0.0.0:7001
+    listen-client-urls: http://0.0.0.0:4001
+    advertise-client-urls: http://${ETCD_IP_ADDRESS}:4001
+    initial-cluster: ${ETCD_HOSTNAME_00}=http://${ETCD_IP_ADDRESS_00}:2380
+    initial-cluster-state: new
+  units:
+    - name: etcd2.service
+      command: start
+    - name: 00-ens.network
+      runtime: true
+      content: |
+        [Match]
+        Name=ens*
+
+        [Network]
+        Address=${ETCD_IP_ADDRESS}/20
+        Gateway=${GATEWAY}
+        DNS=${DNS}
+    - name: settimezone.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set the timezone
+
+        [Service]
+        ExecStart=/usr/bin/timedatectl set-timezone Europe/Paris
+        RemainAfterExit=yes
+        Type=oneshot
+__CLOUD_CONFIG__
