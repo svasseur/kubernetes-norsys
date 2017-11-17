@@ -15,7 +15,7 @@ Idéal pour la mise en place de kubernetes sur coreos.
 
 Uitlisation des scripts de déploiements de coreos disponible ici : [www.virtuallyghetto.com](www.virtuallyghetto.com)
 
-Exemples de script dans le repertoire [coreos]()
+Exemples de script dans le repertoire [coreos](https://github.com/svasseur/kubernetes-norsys/tree/master/coreos)
 
 
 

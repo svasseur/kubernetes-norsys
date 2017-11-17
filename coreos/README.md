@@ -3,7 +3,7 @@ Deploy Kubernetes
 
 
 
-On part sur 4 workers  et un master 
+On part sur 4 workers  et un master
 
 |{WORKER_FQDN}         |  ${WORKER_IP}  |
 | ---------------------|----------------|
@@ -18,7 +18,7 @@ On part sur 4 workers  et un master
 
 #Déployer les machines coreos
 
-repertoire   /coreos-vmware-deploy
+repertoire   [/coreos-vmware-deploy](https://github.com/svasseur/kubernetes-norsys/tree/master/coreos/tls-assets)
 
 
 # Générer les certificat des machines
