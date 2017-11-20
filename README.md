@@ -106,18 +106,17 @@ Controller Ingress, permet d’exposer les services à l’exterieur.
 
 `helm install stable/nginx-ingress --set controller.hostNetwork=true`
 
-##### Installation de kube-lego
-
-kube-lego génération automatique du certificat https pour les resssources ingress via Let's Encrypt.
-
-
-`helm install stable/kube-lego --set config.LEGO_EMAIL=$EMAIL,config.LEGO_URL=https://acme-v01.api.letsencrypt.org/directory
 
 
 ##### Installation d’un provisionner NFS 
 
+en mode daemonset 
 
+fichier [daemonset](./kubernetes-anywhere/daemonset.yaml)
 
+`kubectl label node kubernetes-node1  app=nfs-provisioner`
+
+`kubectl create -f daemonset.yaml`
 
 
 
