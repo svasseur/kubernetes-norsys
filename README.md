@@ -4,10 +4,10 @@
 Installation de d’un cluster Kubernetes sous VSphere 5.5
 
 
-Choix du type d’installation : 
+Choix du type d’installation :
 
-## 1. Coreos 
-Coreos : la méthode n’est plus maintenu par coreos au profit de la méthode tectonic. 
+# 1. Coreos
+Coreos : la méthode n’est plus maintenu par coreos au profit de la méthode tectonic.
 Idéal pour la mise en place de kubernetes sur coreos.
 
 Uitlisation des scripts de déploiements de coreos disponible ici : [www.virtuallyghetto.com](www.virtuallyghetto.com)
@@ -15,10 +15,10 @@ Uitlisation des scripts de déploiements de coreos disponible ici : [www.virtual
 Exemples de script dans le repertoire [coreos](https://github.com/svasseur/kubernetes-norsys/tree/master/coreos)
 
 
-## 2. Tectonic 
+# 2. Tectonic
 Utilisation d’une méthode propriétaire pour déployer un cluster kubernetes / coreos.
 
-Necessite une license gratuite pour le déploiement jusqu’a 10 instances. 
+Necessite une license gratuite pour le déploiement jusqu’a 10 instances.
 
 Déploiement via terraform.
 
@@ -32,25 +32,25 @@ dhcp
 chain http://machinededeploiement:8080/boot.ipxe
 ```
 
-construire l’image ipxe 
+construire l’image ipxe
 `make bin/undionly.kpxe EMBED=demo.ipxe`
 
-Pour eviter les problèmes, mettre en place le pxe uniquement pour les adresses mac des machines kubernetes. ( histoire d’eviter l’installation de coreos sur toutes les serveurs de l’entreprise qui pourraient rebooter ) 
+Pour eviter les problèmes, mettre en place le pxe uniquement pour les adresses mac des machines kubernetes. ( histoire d’eviter l’installation de coreos sur toutes les serveurs de l’entreprise qui pourraient rebooter )
 
 Avantage de tectonic : le dashboard de tectonic est sympa. On se se pose pas la question de la mise en place du controler ingress ( les accés externes sont gérés automatiquement ).
 
 Inconvénient : limitation de la licence gratuite.
-Pas simple de mettre en place un provider cloud vpshere. 
+Pas simple de mettre en place un provider cloud vpshere.
 
 
-## 3. Kubernetes Anywhere  
-
-
-
+# 3. Kubernetes Anywhere  
 
 
 
-**Installation via Kubernetes Anywhere :** 
+
+
+
+**Installation via Kubernetes Anywhere :**
 
 
 [-> github.com kubernetes-anywhere](https://github.com/kubernetes/kubernetes-anywhere)
@@ -93,37 +93,79 @@ Permet de déployer ou d’installer des composants rapidement dans kubernetes.
 
 ![https://helm.sh/](https://helm.sh/assets/images/helm-logo-microsoft.svg)
 
-`helm init` 
+`helm init`
 
 Installe un composant tiller sur le cluster k8s
 
 Vérifier l’installation  avec un `helm version`
 
-Faire un `helm repo update` si lors de l’installation d’un composant retourne une erreur « not found » 
+Faire un `helm repo update` si lors de l’installation d’un composant retourne une erreur « not found »
 
-##### Installation de nginx-ingress
+## Installation de nginx-ingress
 Controller Ingress, permet d’exposer les services à l’exterieur.
 
 `helm install stable/nginx-ingress --set controller.hostNetwork=true`
 
 
 
-##### Installation d’un provisionner NFS 
+## Installation d’un provisionner NFS
 
-en mode daemonset 
+en mode daemon
 
-fichier [daemonset](./kubernetes-anywhere/daemonset.yaml)
+fichier [daemonset.yaml](./kubernetes-anywhere/daemonset.yaml)
 
 `kubectl label node kubernetes-node1  app=nfs-provisioner`
 
 `kubectl create -f daemonset.yaml`
 
+installation de nfs-utils sur les workers Photon OS
+
+`tdnf -y install nfs-utils`
+
+`mount -t nfs 172.20.26.1:/nfs /srv`
+
+
+## Utilisation des volumes vsphere
+
+
+#####Fonctionne pour un pod avec un replica = 1
+
+se connecter sur la machine vsphere
+
+`vmkfstools -c 50G /vmfs/volumes/Datastore-12/volumes/kubeVolume.vmdk
+`
+
+source dans [httpd3.yaml ](./samples/httpd3.yaml)
 
 
 
+      volumes:
+       - name: httpd3-persistent-storage
+        vsphereVolume:
+         volumePath: "[Datastore-12] kubevols/kubeVolume"
+         fsType: ext4
+
+###### Volume persistent
+
+ssh dans le vpshere
+
+`vmkfstools -c 5G /vmfs/volumes/Datastore-12/volumes/persistent.vmdk`
+
+
+     apiVersion: v1
+     kind: PersistentVolume
+    metadata:
+      name: pv001
+    spec:
+      capacity:
+         storage: 5Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      vsphereVolume:
+         volumePath: "[Datastore-12] kubevols/persistent"
+         fsType: ext4
 
 
 
-
-
-
+`kubectl describe pv pv0001`
