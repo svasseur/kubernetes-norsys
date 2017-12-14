@@ -169,3 +169,14 @@ ssh dans le vpshere
 
 
 `kubectl describe pv pv0001`
+
+    kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: pvc0001
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
