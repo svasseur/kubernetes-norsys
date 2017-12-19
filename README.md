@@ -1,7 +1,7 @@
 # kubernetes-norsys
 
 
-Installation de d’un cluster Kubernetes sous VSphere 5.5
+Installation de d’un cluster Kubernetes  sous VSphere 5.5
 
 
 Choix du type d’installation :
@@ -44,8 +44,6 @@ Pas simple de mettre en place un provider cloud vpshere.
 
 
 # 3. Kubernetes Anywhere  
-
-
 
 
 
