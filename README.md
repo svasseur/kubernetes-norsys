@@ -1,7 +1,9 @@
 # kubernetes-norsys
 
 
-Installation de d’un cluster Kubernetes  sous VSphere 5.5
+Installation de d’un cluster Kubernetes sous VSphere 5.5   
+
+[kubernetes v1.9.0 ici](./kubernetesv190.md)
 
 
 Choix du type d’installation :

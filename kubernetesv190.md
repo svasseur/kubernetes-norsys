@@ -66,3 +66,13 @@ upload PhotonOS ova file
 
 Don’t forget to change the Phase 2 url with "docker.io/cnastorage/k8s-ignition:v1.8-dev-release"
 
+
+```
+svasseur$ kubectl get nodes
+NAME                STATUS                     ROLES     AGE       VERSION
+kubernetes-master   Ready,SchedulingDisabled   <none>    2h        v1.9.0
+kubernetes-node1    Ready                      <none>    2h        v1.9.0
+kubernetes-node2    Ready                      <none>    2h        v1.9.0
+kubernetes-node3    Ready                      <none>    2h        v1.9.0
+kubernetes-node4    Ready                      <none>    2h        v1.9.0
+```
