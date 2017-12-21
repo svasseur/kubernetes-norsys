@@ -1,4 +1,4 @@
-# Install kubernetes v1.9.0 on vsphere 5.5
+# Install kubernetes v1.9.0 on vsphere 5.5 
 
 with kubernetes anywhere 
 
@@ -75,4 +75,50 @@ kubernetes-node1    Ready                      <none>    2h        v1.9.0
 kubernetes-node2    Ready                      <none>    2h        v1.9.0
 kubernetes-node3    Ready                      <none>    2h        v1.9.0
 kubernetes-node4    Ready                      <none>    2h        v1.9.0
+```
+
+# and next ?
+
+##install kubectl 
+
+https://kubernetes.io/docs/tasks/tools/install-kubectl/
+
+don’t forget to install the 1.9.0 version
+
+`curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/darwin/amd64/kubectl`
+
+`chmod +x ./kubectl`
+
+`sudo mv ./kubectl /usr/local/bin/kubectl
+`
+
+##install helm
+
+`helm init`
+
+##install ingress 
+
+
+nginx-ingress do the job 
+
+`helm install stable/nginx-ingress --set controller.hostNetwork=true`
+
+
+sample of a ingress yaml file : 
+
+```  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    name: httpd
+    annotations:
+      kubernetes.io/ingress.class: nginx
+  spec:
+    rules:
+      - host: httpd.norsys.group
+        http:
+          paths:
+            - path: /
+              backend:
+                serviceName: httpd
+                servicePort: 80
 ```
